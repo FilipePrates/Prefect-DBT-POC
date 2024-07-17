@@ -6,7 +6,17 @@ import pandas as pd
 from prefect import task
 import requests
 
+import psycopg2
+from psycopg2 import sql
+
 from utils import log
+
+# Define the connection parameters
+DB_NAME = "dadosAbertosTOF"
+DB_USER = "cliente"
+DB_PASSWORD = "your_password"  # replace with your actual password
+DB_HOST = "localhost"
+DB_PORT = "5432"
 
 @task
 def download_data(n_users: int) -> str:
@@ -20,7 +30,7 @@ def download_data(n_users: int) -> str:
         str: texto em formato CSV.
     """
     response = requests.get(
-        "https://randomuser.me/api/?results={}&format=csv".format(n_users)
+        "https://dados.mobilidade.rio/gps/brt".format(n_users)
     )
     log("Dados baixados com sucesso!")
     return response.text
@@ -50,3 +60,35 @@ def save_report(dataframe: pd.DataFrame) -> None:
     """
     dataframe.to_csv("report.csv", index=False)
     log("Dados salvos em report.csv com sucesso!")
+
+@task
+def connect_to_db():
+    try:
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+        print("Connection successful")
+        return conn
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        raise
+
+@task
+def execute_query(conn):
+    try:
+        cursor = conn.cursor()
+        query = sql.SQL("SELECT * FROM your_table_name")  # replace with your actual query
+        cursor.execute(query)
+        results = cursor.fetchall()
+        print("Query executed successfully")
+        return results
+    except Exception as e:
+        print(f"Error executing query: {e}")
+        raise
+    finally:
+        cursor.close()
+        conn.close()
