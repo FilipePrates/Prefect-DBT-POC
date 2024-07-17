@@ -9,14 +9,17 @@ import requests
 import psycopg2
 from psycopg2 import sql
 
+from dotenv import load_dotenv
+import os
+
 from utils import log
 
-# Define the connection parameters
-DB_NAME = "dadosAbertosTOF"
-DB_USER = "cliente"
-DB_PASSWORD = "your_password"  # replace with your actual password
-DB_HOST = "localhost"
-DB_PORT = "5432"
+# connection parameters
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
 
 @task
 def download_data(n_users: int) -> str:
